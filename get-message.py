@@ -76,3 +76,8 @@ if __name__ == "__main__":
         msg += ' '
 
     print(f"Message: {msg}")
+
+    # Deleting
+
+    for m in messages:
+        delete_message(m[2])
