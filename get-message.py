@@ -4,8 +4,10 @@ import requests
 import json
 
 # Set up your SQS queue URL and boto3 client
-url = "https://sqs.us-east-1.amazonaws.com/440848399208/xxxxxxx"
+url = "https://sqs.us-east-1.amazonaws.com/440848399208/lct4am"
 sqs = boto3.client('sqs')
+
+messages = []
 
 def delete_message(handle):
     try:
@@ -19,6 +21,7 @@ def delete_message(handle):
         print(e.response['Error']['Message'])
 
 def get_message():
+    global messages
     try:
         # Receive message from SQS queue. Each message has two MessageAttributes: order and word
         # You want to extract these two attributes to reassemble the message
@@ -40,6 +43,8 @@ def get_message():
             word = response['Messages'][0]['MessageAttributes']['word']['StringValue']
             handle = response['Messages'][0]['ReceiptHandle']
 
+            messages.append((order,word,handle)) # for later use
+
             # Print the message attributes - this is what you want to work with to reassemble the message
             print(f"Order: {order}")
             print(f"Word: {word}")
@@ -49,10 +54,25 @@ def get_message():
             print("No message in the queue")
             exit(1)
             
+            
     # Handle any errors that may occur connecting to SQS
     except ClientError as e:
         print(e.response['Error']['Message'])
 
 # Trigger the function
 if __name__ == "__main__":
-    get_message()
+    i = 0
+    while len(messages) < 10:
+        print(f"Message: {i}")
+        get_message()
+        i += 1
+
+    messages.sort(key = lambda x: x[0]) # sort by order
+
+    msg = ''
+
+    for m in messages:
+        msg += m[1]
+        msg += ' '
+
+    print(f"Message: {msg}")
